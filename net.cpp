@@ -28,7 +28,7 @@ int load_ical_from_url(string &ical, const string &host, const string &URL)
 	printf("INFO: Load schedule from %s\n", host.c_str());
 
 	// FIXME just load from test file for now
-	ifstream f("out.txt");
+	/*ifstream f("out.txt");
     string ln;
     ical="";
     bool v_cal_output = false;
@@ -47,16 +47,18 @@ int load_ical_from_url(string &ical, const string &host, const string &URL)
     }
     f.close();
 
-	return NET_SUCCESS;
+	return NET_SUCCESS;*/
 
     int sock;
     int error_num;
     struct sockaddr_in saddr;
     struct addrinfo ai_hints, *ai_res, *ai_iter;
     
-    char *url = "https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics";
-    char *hostname = "calendar.google.com";
-    
+    //const char *url = "https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics";
+    //const char *hostname = "calendar.google.com";
+
+    const char *url = URL.c_str();
+    const char *hostname = host.c_str();
     
     memset(&ai_hints, 0, sizeof ai_hints);
     ai_hints.ai_family = PF_UNSPEC;
@@ -95,14 +97,6 @@ int load_ical_from_url(string &ical, const string &host, const string &URL)
 
     freeaddrinfo( ai_res );
     
-    /*char req[1024];
-    sprintf( req, "GET %s\n\n", url);
-    write(sock, req, strlen(req) );
-    
-    while(read(sock, req, 1024)) {
-        printf("%s",req);
-    }*/
-    
     WOLFSSL_CTX* ctx;
     WOLFSSL* ssl;
     WOLFSSL_METHOD* method;
@@ -122,12 +116,7 @@ int load_ical_from_url(string &ical, const string &host, const string &URL)
         err_sys("wolfSSL_new error");
     }
     
-    //wolfSSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, 0);
-    
-    /* Add cert to ctx */
-    /*if (wolfSSL_CTX_load_verify_locations(ctx, "GeoTrust_Global_CA.pem", 0) != SSL_SUCCESS) {
-        err_sys("Error loading GeoTrust_Global_CA.pem");
-    }*/
+    //wolfSSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, 0);    
     if (wolfSSL_CTX_load_verify_locations(ctx, "cacert.pem", 0) != SSL_SUCCESS) {
         err_sys("Error loading cacert.pem");
     }
@@ -135,7 +124,6 @@ int load_ical_from_url(string &ical, const string &host, const string &URL)
     char message[1024];
     sprintf( message, "GET %s\n\n", url);
 
-    
     /* Connect wolfssl to the socket, server, then send message */
     wolfSSL_set_fd(ssl, sock);
     if(wolfSSL_connect(ssl) != SSL_SUCCESS)
@@ -153,15 +141,40 @@ int load_ical_from_url(string &ical, const string &host, const string &URL)
     }
     
     int sel_val = tcp_select(sock, 5);
+
+    string http_text="";
     if(sel_val == TEST_RECV_READY)
         while(wolfSSL_read(ssl, message, 1023) > 0)
-            printf("%s", message);
+        	http_text += string(message);
+            //printf("%s", message);
     
     /* frees all data before client termination */
     wolfSSL_free(ssl);
     wolfSSL_CTX_free(ctx);
     wolfSSL_Cleanup();
     
-    
     close(sock);
+
+    // Simple parsing to extract iCal only data
+    stringstream ss(http_text);
+    ical="";
+    string ln;
+    bool v_cal_output = false;
+    while(std::getline(ss,ln))
+    {
+        if (ln.compare(0,13,"END:VCALENDAR") == 0)
+        {
+            ical += "END:VCALENDAR";
+            break;
+        }
+        if (ln.compare(0,15,"BEGIN:VCALENDAR") == 0)
+            v_cal_output = true;
+        
+        if(v_cal_output)
+            ical += ln + "\n";
+    }
+
+
+    return NET_SUCCESS;
 }
+
