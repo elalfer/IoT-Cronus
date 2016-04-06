@@ -49,6 +49,8 @@ public:
 	// Returns true if the vavle should be open right now
 	bool IsActive();
 
+	time_t LastUpdated() { return this->last_updated; };
+
 private:
 	void add_to_list(icaltimetype start, icaltimetype end);
 	void sort_events();

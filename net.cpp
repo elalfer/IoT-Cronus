@@ -10,6 +10,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+
+
 // WolfSSL
 #include <wolfssl/options.h>
 #include <wolfssl/ssl.h>
@@ -21,33 +23,14 @@
 #include <fstream>
 #include <sstream>
 
+using namespace std;
+
 // TODO reduce connection time-out to 1-5 sec
 
-int load_ical_from_url(string &ical, const string &host, const string &URL)
+// Do not send Since-Modified if mod_since == 0
+int load_ical_from_url(string &ical, const string &host, const string &URL, time_t mod_since)
 {
 	printf("INFO: Load schedule from %s\n", host.c_str());
-
-	// FIXME just load from test file for now
-	/*ifstream f("out.txt");
-    string ln;
-    ical="";
-    bool v_cal_output = false;
-    while(std::getline(f,ln))
-    {
-        if (ln.compare(0,13,"END:VCALENDAR") == 0)
-        {
-            ical += "END:VCALENDAR";
-            break;
-        }
-        if (ln.compare(0,15,"BEGIN:VCALENDAR") == 0)
-            v_cal_output = true;
-        
-        if(v_cal_output)
-            ical += ln + "\n";
-    }
-    f.close();
-
-	return NET_SUCCESS;*/
 
     int sock;
     int error_num;
@@ -59,6 +42,23 @@ int load_ical_from_url(string &ical, const string &host, const string &URL)
 
     const char *url = URL.c_str();
     const char *hostname = host.c_str();
+
+    // Build HTTP request
+    char message[1024];
+
+    // Build HTTP request
+    if(mod_since) {
+        // Add If-Modified-Since: header
+        // Sat, 29 Oct 1994 19:43:31 GMT
+        char t[256];
+        strftime(t, 255, "If-Modified-Since: %a, %d %b %Y %H:%M:%S GMT", gmtime(&mod_since));
+        snprintf( message, sizeof message, "GET %s\nHost: %s\n%s\n\n", url, hostname, t);
+    }
+    else
+        snprintf( message, sizeof message, "GET %s\n\n", url);
+
+    cout << message << endl;
+    //exit(-1);
     
     memset(&ai_hints, 0, sizeof ai_hints);
     ai_hints.ai_family = PF_UNSPEC;
@@ -120,9 +120,6 @@ int load_ical_from_url(string &ical, const string &host, const string &URL)
     if (wolfSSL_CTX_load_verify_locations(ctx, "cacert.pem", 0) != SSL_SUCCESS) {
         err_sys("Error loading cacert.pem");
     }
-    
-    char message[1024];
-    sprintf( message, "GET %s\n\n", url);
 
     /* Connect wolfssl to the socket, server, then send message */
     wolfSSL_set_fd(ssl, sock);
@@ -154,6 +151,10 @@ int load_ical_from_url(string &ical, const string &host, const string &URL)
     wolfSSL_Cleanup();
     
     close(sock);
+
+    // Check if 304 return - NOT_CHANGED
+    cout << http_text << endl;
+    exit(-1);
 
     // Simple parsing to extract iCal only data
     stringstream ss(http_text);

@@ -6,6 +6,7 @@
 // 
 
 #include <algorithm>
+#include <sys/stat.h>
 
 void iCalValveControl::add_to_list(icaltimetype start, icaltimetype end)
 {
@@ -155,7 +156,13 @@ int iCalValveControl::ParseICALFromFile(string file_name)
             ical += ln + "\n";
     }
     f.close();
+    int ret = this->ParseICALFromString(ical);
 
-    return this->ParseICALFromString(ical);
+    // Set last_update time to file modification time
+    struct stat cal_file_stat;
+    stat(file_name.c_str(), &cal_file_stat);
+    this->last_updated = cal_file_stat.st_mtimespec.tv_sec;
+
+    return ret;
 }
 
