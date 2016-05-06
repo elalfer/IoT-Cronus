@@ -1,4 +1,5 @@
 #include "cal.h"
+#include "log.h"
 
 //// TODO list
 // * Preserve current list of events or replace - current solution is to replace. Might lead to broken list...
@@ -44,8 +45,8 @@ int iCalValveControl::ParseICALFromString(const string &ical)
     	// Remove all event if ical is valid
     	this->events.clear();
 
-        //cout << "Parsing component: " << ic.is_valid() << endl;
-        //cout << ic.as_ical_string().c_str() << endl;
+        DEBUG_PRINT(LOG_DEBUG, "Parsing iCal component: " << ic.is_valid());
+        //DEBUG_PRINT(LOG_INFO, ic.as_ical_string().c_str());
 
         // Go through all events and pring time
         VEvent *sub_ic = dynamic_cast<VEvent *>(ic.get_first_component(ICAL_VEVENT_COMPONENT));
@@ -55,10 +56,10 @@ int iCalValveControl::ParseICALFromString(const string &ical)
         //       ICAL_VEVENT_COMPONENT << endl;
 
         while (sub_ic != NULL) {
-            //printf("subcomponent: %s\n", sub_ic->as_ical_string().c_str());
+            DEBUG_PRINT(LOG_DEBUG, "  Subcomponent");
 
-            //cout << "From: " << icaltime_as_ical_string(sub_ic->get_dtstart())      << endl;
-            //cout << "To:   " << icaltime_as_ical_string(sub_ic->get_dtend())        << endl;
+            DEBUG_PRINT(LOG_DEBUG, "    From: " << icaltime_as_ical_string(sub_ic->get_dtstart()) );
+            DEBUG_PRINT(LOG_DEBUG, "    To:   " << icaltime_as_ical_string(sub_ic->get_dtend()) );
 
             icaltimetype dt_today = icaltime_today(); //icaltime_current_time_with_zone();
             icaltimetype dt_max_today = icaltime_today();
@@ -76,7 +77,7 @@ int iCalValveControl::ParseICALFromString(const string &ical)
                 icaltimetype rec_dt_start = sub_ic->get_dtstart();
                 icaltimetype rec_dt_end   = sub_ic->get_dtend();
 
-                //cout << "Rec rule exists: " << rec_rule->as_ical_string();
+                DEBUG_PRINT(LOG_DEBUG, "    REC rule: " << rec_rule->as_ical_string() );
                 //cout << "  start " << icaltime_as_ical_string(rec_dt_start) << endl;
                 // Construct recurent iterator
 
@@ -102,6 +103,7 @@ int iCalValveControl::ParseICALFromString(const string &ical)
                         next = icalrecur_iterator_next(ritr);
                         next_e = icalrecur_iterator_next(ritr_end);
 
+                        // Add new event to the list
                         add_to_list(next, next_e);
                 }
                 while (!icaltime_is_null_time(next) && icaltime_compare_date_only(next, dt_max_today) < 0 );
@@ -110,10 +112,14 @@ int iCalValveControl::ParseICALFromString(const string &ical)
             }
             else
             {
+            	DEBUG_PRINT(LOG_DEBUG, "    Single time event");
+
                 // Just check the time
-                if(icaltime_compare_date_only(sub_ic->get_dtstart(),dt_max_today) == 0)
+                if( (icaltime_compare_date_only(sub_ic->get_dtstart(),dt_max_today) < 0) &&
+                	(icaltime_compare_date_only(sub_ic->get_dtstart(),dt_today) >= 0) )
                 {
-                    //cout << "  next " << icaltime_as_ical_string(next) << endl;
+                	// Add single event to the list
+                	add_to_list(sub_ic->get_dtstart(), sub_ic->get_dtend());
                 }
 
                 // TODO: Do we need to sort all future events? can they come unordered?

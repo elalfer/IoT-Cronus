@@ -47,7 +47,9 @@ int load_ical_from_url(string &ical, const string &host, const string &URL, time
     char message[1024];
 
     // Build HTTP request
-    if(mod_since) {
+    // FIXME Issue#6 Turned off "mod_since" feature as google calendar doens't seem to support it
+    if (false) // (mod_since) 
+    {
         // Add If-Modified-Since: header
         // Sat, 29 Oct 1994 19:43:31 GMT
         char t[256];

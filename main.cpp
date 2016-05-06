@@ -16,15 +16,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-/*#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-
-
-// WolfSSL
-#include <wolfssl/options.h>
-#include <wolfssl/ssl.h>
-#include <wolfssl/test.h>*/
 #include <errno.h>
 
 #include <string>
@@ -38,6 +29,8 @@
 #include "valve.h"
 #include "gpio.h"
 
+#include "log.h"
+
 /*
 #include <libical/ical.h>
 
@@ -50,7 +43,7 @@
 #define CHECK_TIME 10
 // Time to update calendar info from the internet (sec)
 // #define UPDATE_TIME (60*10)
-#define UPDATE_TIME (30)
+#define UPDATE_TIME (60*30)
 
 //// TODO List
 // * Extract cal for a week
@@ -60,18 +53,36 @@ using namespace LibICal;
 
 vector<IValveControl> g_ValveControl;
 
+// Global variables
+int g_DebugLevel=6;
+
 #define PIN_V1 7
 #define PIN_V2 8
 #define PIN_LED_ACTIVE 4
 
+void ParseOptions(int argc, char* argv[])
+{
+    int i=1;
+    for(; i<argc; i++)
+    {
+        if(strcmp("-debug", argv[i]) == 0)
+        {
+            g_DebugLevel = 7;
+            DEBUG_PRINT(LOG_INFO, "Debug print enabled");
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
+
+    ParseOptions(argc, argv);
 
     iCalValveControl vc(GT_DEFUALT);
     GpioRelay R1(PIN_V1);
 
-    vc.ParseICALFromFile("./valve_0.ical");
-    time_t last_reload = time(0)-2*UPDATE_TIME; // Hack to force the reload on the first iteration
+    vc.ParseICALFromFile("./basic.ics");
+    time_t last_reload = time(0); //-2*UPDATE_TIME; // Hack to force the reload on the first iteration
 
     while(true)
     {
@@ -99,8 +110,9 @@ int main(int argc, char* argv[])
             last_reload = time(0); // is it better to update the time before or after the load??
         }
 
+        cout << "INFO: update status\n";
         //set_valve_status(0, vc.IsActive());
-        //R1.SetStatus(!R1.IsOn()); // Just swap between 2 states
+        R1.SetStatus(!R1.IsOn()); // Just swap between 2 states
 
         // TODO adjust sleep time for schedule update
         sleep(CHECK_TIME);
