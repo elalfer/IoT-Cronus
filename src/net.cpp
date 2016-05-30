@@ -142,10 +142,14 @@ int load_ical_from_url(string &ical, const string &host, const string &URL, time
     int sel_val = tcp_select(sock, 5);
 
     string http_text="";
+    int r_len;
     if(sel_val == TEST_RECV_READY)
-        while(wolfSSL_read(ssl, message, 1023) > 0)
+        while( (r_len=wolfSSL_read(ssl, message, 1023)) > 0)
+        {
+            message[r_len] = 0;
         	http_text += string(message);
             //printf("%s", message);
+        }
     
     /* frees all data before client termination */
     wolfSSL_free(ssl);
