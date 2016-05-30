@@ -3,3 +3,6 @@ a.out
 .DS_Store
 cacert.pem
 out.txt
+/src/polivalka
+/bin/*
+
