@@ -167,7 +167,7 @@ int iCalValveControl::ParseICALFromFile(string file_name)
     // Set last_update time to file modification time
     struct stat cal_file_stat;
     stat(file_name.c_str(), &cal_file_stat);
-    this->last_updated = cal_file_stat.st_mtimespec.tv_sec;
+    //this->last_updated = cal_file_stat.st_mtimespec.tv_sec;
 
     return ret;
 }

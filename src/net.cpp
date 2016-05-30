@@ -119,7 +119,7 @@ int load_ical_from_url(string &ical, const string &host, const string &URL, time
     }
     
     //wolfSSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, 0);    
-    if (wolfSSL_CTX_load_verify_locations(ctx, "cacert.pem", 0) != SSL_SUCCESS) {
+    if (wolfSSL_CTX_load_verify_locations(ctx, "./cacert.pem", 0) != SSL_SUCCESS) {
         err_sys("Error loading cacert.pem");
     }
 
@@ -155,8 +155,8 @@ int load_ical_from_url(string &ical, const string &host, const string &URL, time
     close(sock);
 
     // Check if 304 return - NOT_CHANGED
-    cout << http_text << endl;
-    exit(-1);
+    //cout << http_text << endl;
+    //exit(-1);
 
     // Simple parsing to extract iCal only data
     stringstream ss(http_text);
