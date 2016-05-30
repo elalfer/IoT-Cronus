@@ -42,8 +42,7 @@
 // Time after which to check if any of the valves are active (sec)
 #define CHECK_TIME 10
 // Time to update calendar info from the internet (sec)
-// #define UPDATE_TIME (60*10)
-#define UPDATE_TIME (10)
+#define UPDATE_TIME (60*10)
 
 //// TODO List
 // * Extract cal for a week
