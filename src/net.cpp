@@ -22,14 +22,36 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <regex>
 
 using namespace std;
 
 // TODO reduce connection time-out to 1-5 sec
 
-// Do not send Since-Modified if mod_since == 0
-int load_ical_from_url(string &ical, const string &host, const string &URL, time_t mod_since)
+/// Parses URL string and returns only host name
+// 
+string hostname_from_url(const string &url)
 {
+    string path,domain,x,protocol,port,query;
+    int offset = 0;
+    size_t pos1,pos2,pos3,pos4;
+    x = url; //_trim(raw_url);
+    offset = offset==0 && x.compare(0, 8, "https://")==0 ? 8 : offset;
+    offset = offset==0 && x.compare(0, 7, "http://" )==0 ? 7 : offset;
+    pos1 = x.find_first_of('/', offset+1 );
+    path = pos1==string::npos ? "" : x.substr(pos1);
+    domain = string( x.begin()+offset, pos1 != string::npos ? x.begin()+pos1 : x.end() );
+    path = (pos2 = path.find("#"))!=string::npos ? path.substr(0,pos2) : path;
+    port = (pos3 = domain.find(":"))!=string::npos ? domain.substr(pos3+1) : "";
+    domain = domain.substr(0, pos3!=string::npos ? pos3 : domain.length());
+
+    return domain;
+}
+
+// Do not send Since-Modified if mod_since == 0
+int load_ical_from_url(string &ical, const string &URL, time_t mod_since)
+{
+    string host = hostname_from_url(URL);
 	printf("INFO: Load schedule from %s\n", host.c_str());
 
     int sock;

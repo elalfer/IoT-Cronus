@@ -12,8 +12,14 @@ OBJS=cal.o gpio_stub.o main.o net.o valve.o
 .cpp.o:
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
-all: $(OBJS)
+polivalka: $(OBJS)
 	g++ $(OBJS) -o polivalka $(CLIBS) 
 
+all: polivalka
+	mkdir -p ../bin
+	rm -f ../bin/polivalka
+	ln -s ../src/polivalka ../bin/
+
 clean:
-	rm *.o
+	rm -f polivalka
+	rm -f *.o

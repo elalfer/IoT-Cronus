@@ -10,6 +10,8 @@
 #define NET_ERROR 			-1
 
 // Load ical from URL
-int load_ical_from_url(std::string &ical, const std::string &host, const std::string &URL, time_t mod_since);
+int load_ical_from_url(std::string &ical, const std::string &URL, time_t mod_since);
+
+std::string hostname_from_url(const std::string &url);
 
 #endif
