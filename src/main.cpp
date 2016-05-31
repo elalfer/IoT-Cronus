@@ -83,18 +83,20 @@ int main(int argc, char* argv[])
     vc.ParseICALFromFile("./basic.ics");
     time_t last_reload = time(0); //-2*UPDATE_TIME; // Hack to force the reload on the first iteration
 
+    // Enter into work loop
     while(true)
     {
         if( (time(0) - last_reload) > UPDATE_TIME )    // do it every UPDATE_TIME seconds
         {
             string ical_string("");
-            string h_name("calendar.google.com");
             string URL("https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics");
             int err;
 
-            if( (err = load_ical_from_url(ical_string, h_name, URL, vc.LastUpdated())) == NET_SUCCESS)
+            if( (err = load_ical_from_url(ical_string, URL, vc.LastUpdated())) == NET_SUCCESS)
             {
                 vc.ParseICALFromString(ical_string);
+
+                // TODO - store to $
             }
             else if(err == NET_NOT_CHANGED)
             {
