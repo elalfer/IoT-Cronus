@@ -72,6 +72,15 @@ void ParseOptions(int argc, char* argv[])
     }
 }
 
+struct valve_t
+{
+    iCalValveControl vc;
+    GpioRelay gpio;
+    const string url;
+
+    valve_t(string ical_url, int gpio_pin) : gpio(gpio_pin), vc(GT_DEFUALT), url(ical_url) {}
+};
+
 int main(int argc, char* argv[])
 {
 
@@ -80,40 +89,55 @@ int main(int argc, char* argv[])
     iCalValveControl vc(GT_DEFUALT);
     GpioRelay R1(PIN_V1);
 
-    vc.ParseICALFromFile("./basic.ics");
+    std::vector<valve_t> valves;
+    {
+        valve_t vt("https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics",
+            PIN_V1);
+        char f_name[255];
+        sprintf(f_name, "%d.ics", vt.gpio.GetPin());
+        vt.vc.ParseICALFromFile(f_name);
+
+        valves.push_back(vt);
+    }
+
+    // vc.ParseICALFromFile("./7.ics");
     time_t last_reload = time(0); //-2*UPDATE_TIME; // Hack to force the reload on the first iteration
 
     // Enter into work loop
     while(true)
     {
-        if( (time(0) - last_reload) > UPDATE_TIME )    // do it every UPDATE_TIME seconds
+        for( auto &vt : valves)
         {
-            string ical_string("");
-            string URL("https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics");
-            int err;
-
-            if( (err = load_ical_from_url(ical_string, URL, vc.LastUpdated())) == NET_SUCCESS)
+            if( (time(0) - last_reload) > UPDATE_TIME )    // do it every UPDATE_TIME seconds
             {
-                vc.ParseICALFromString(ical_string);
+                string ical_string("");
+                // string URL("https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics");
+                int err;
 
-                // TODO - store to $
-            }
-            else if(err == NET_NOT_CHANGED)
-            {
-                //TODO force reload from the cache once a day to generate schedule for 7 days
-                //      and store it in the cache
-            }
-            else if(err < 0)
-            {
-                cerr << "ERROR: Error loading ical" << endl;
+                if( (err = load_ical_from_url(ical_string, vt.url, vt.vc.LastUpdated())) == NET_SUCCESS)
+                {
+                    vt.vc.ParseICALFromString(ical_string);
+
+                    // TODO - store to $ file
+                }
+                else if(err == NET_NOT_CHANGED)
+                {
+                    //TODO force reload from the cache once a day to generate schedule for 7 days
+                    //      and store it in the cache
+                }
+                else if(err < 0)
+                {
+                    cerr << "ERROR: Error loading ical" << endl;
+                }
+
+                // FIXME ?!?
+                last_reload = time(0); // is it better to update the time before or after the load??
             }
 
-            last_reload = time(0); // is it better to update the time before or after the load??
+            cout << "INFO: update status\n";
+            //set_valve_status(0, vc.IsActive());
+            vt.gpio.SetStatus(!vt.gpio.IsOn()); // Just swap between 2 states
         }
-
-        cout << "INFO: update status\n";
-        //set_valve_status(0, vc.IsActive());
-        R1.SetStatus(!R1.IsOn()); // Just swap between 2 states
 
         // TODO adjust sleep time for schedule update
         sleep(CHECK_TIME);

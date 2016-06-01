@@ -10,6 +10,7 @@ public:
 	bool IsOn() { return is_on; };
 
 	int  SetStatus(bool on);
+	int  GetPin() { return pin_id; }
 
 private:
 	bool is_on;
