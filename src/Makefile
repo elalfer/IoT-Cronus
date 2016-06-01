@@ -7,13 +7,20 @@ CC=g++
 CFLAGS=-O3 -g -std=c++11 
 CLIBS=-L$(WOLFSSL_LIB)/lib -L$(ICAL_LIB)/lib -lwolfssl -lical -lical_cxx
 
-OBJS=cal.o gpio_stub.o main.o net.o valve.o
+OBJS=cal.o main.o net.o valve.o
+
+# Select gpio support
+ifeq ($(wildcard /bla),)
+	ALL_OBJS=$(OBJS) gpio_stub.o
+else
+	ALL_OBJS=$(OBJS) gpio_edison.o
+endif
 
 .cpp.o:
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
-polivalka: $(OBJS)
-	g++ $(OBJS) -o polivalka $(CLIBS) 
+polivalka: $(ALL_OBJS)
+	g++ $(ALL_OBJS) -o polivalka $(CLIBS) 
 
 all: polivalka
 	mkdir -p ../bin
