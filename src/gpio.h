@@ -12,6 +12,9 @@ public:
 	int  SetStatus(bool on);
 	int  GetPin() { return pin_id; }
 
+	void Start() { SetStatus(true);  }
+	void Stop()  { SetStatus(false); }
+
 private:
 	bool is_on;
 

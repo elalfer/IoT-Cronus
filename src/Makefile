@@ -1,10 +1,12 @@
-WOLFSSL_LIB=/home/ialbrekh/Projects/polivalka/libs/wolfssl-3.7.0-bin
+WOLFSSL_LIB=../../libs/wolfssl-bin
 ICAL_LIB=../../libs/libical-bin
+BIN_NAME=polivalka
 
 INCLUDE=-I$(WOLFSSL_LIB)/include -I$(ICAL_LIB)/include
 
 CC=g++
-CFLAGS=-O3 -g -std=c++11 
+# CFLAGS=-O3 -g -std=c++11 
+CFLAGS=-O2 -g
 CLIBS=-L$(WOLFSSL_LIB)/lib -L$(ICAL_LIB)/lib -lwolfssl -lical -lical_cxx
 
 OBJS=cal.o main.o net.o valve.o
@@ -20,12 +22,20 @@ endif
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
 polivalka: $(ALL_OBJS)
-	g++ $(ALL_OBJS) -o polivalka $(CLIBS) 
+	g++ $(ALL_OBJS) -o $(BIN_NAME) $(CLIBS) 
 
 all: polivalka
 	mkdir -p ../bin
-	rm -f ../bin/polivalka
-	ln -s ../src/polivalka ../bin/
+	rm -f ../bin/$(BIN_NAME)
+	ln -s ../src/$(BIN_NAME) ../bin/
+
+mac: all
+	install_name_tool -change libical.2.dylib     ../../libs/libical-bin/lib/libical.2.dylib ./$(BIN_NAME)
+	install_name_tool -change libical.2.dylib     ../../libs/libical-bin/lib/libical.2.dylib ../../libs/libical-bin/lib/libical_cxx.2.dylib
+	install_name_tool -change /Users/ialbrekh/Documents/Polivalka/libcal/libical-bin/lib/libical.2.dylib  ../../libs/libical-bin/lib/libical.2.dylib ../../libs/libical-bin/lib/libical_cxx.2.dylib
+	install_name_tool -change libical_cxx.2.dylib ../../libs/libical-bin/lib/libical_cxx.2.dylib ./$(BIN_NAME)
+
+	install_name_tool -change /Users/ialbrekh/Documents/Polivalka/wolfssl-3.7.0-bin/lib/libwolfssl.1.dylib $(WOLFSSL_LIB)/lib/libwolfssl.1.dylib ./$(BIN_NAME)
 
 clean:
 	rm -f polivalka
