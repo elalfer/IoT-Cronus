@@ -42,7 +42,7 @@
 // Time after which to check if any of the valves are active (sec)
 #define CHECK_TIME 10
 // Time to update calendar info from the internet (sec)
-#define UPDATE_TIME (60*10)
+#define UPDATE_TIME (60*60*10)
 
 //// TODO List
 // * Extract cal for a week
@@ -64,10 +64,34 @@ void ParseOptions(int argc, char* argv[])
     int i=1;
     for(; i<argc; i++)
     {
-        if(strcmp("-debug", argv[i]) == 0)
+        if(strcmp("--debug", argv[i]) == 0)
         {
             g_DebugLevel = 7;
             DEBUG_PRINT(LOG_INFO, "Debug print enabled");
+        }
+
+        // Run channel <CH> for <N> minutes
+        // must be last one in the list
+        if(strcmp("--run", argv[i]) == 0)
+        {
+            if( argc < i+2 )
+            {
+                cerr << "Invalid number of arguments\n";
+                exit(-1);
+            }
+
+            int ch = atoi( argv[i+1] );
+            int t  = atoi( argv[i+2] );
+
+            DEBUG_PRINT(LOG_INFO, "Start channel " << ch << " for " << t << " minutes" );
+
+            GpioRelay R(ch);
+
+            R.Start();
+            sleep(t*60);
+            R.Stop();
+
+            exit(0);
         }
     }
 }
@@ -85,6 +109,9 @@ int main(int argc, char* argv[])
 {
 
     ParseOptions(argc, argv);
+
+    // Start main app loop
+    // Should go to deamon mode at this point
 
     iCalValveControl vc(GT_DEFUALT);
     GpioRelay R1(PIN_V1);
@@ -127,14 +154,14 @@ int main(int argc, char* argv[])
                 }
                 else if(err < 0)
                 {
-                    cerr << "ERROR: Error loading ical" << endl;
+                    DEBUG_PRINT(LOG_INFO, "ERROR: Error loading ical" );
                 }
 
                 // FIXME ?!?
                 last_reload = time(0); // is it better to update the time before or after the load??
             }
 
-            cout << "INFO: update status\n";
+            DEBUG_PRINT(LOG_INFO, "INFO: update status");
             //set_valve_status(0, vc.IsActive());
             vt.gpio.SetStatus(!vt.gpio.IsOn()); // Just swap between 2 states
         }
