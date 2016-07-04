@@ -99,7 +99,7 @@ int iCalValveControl::ParseICALFromString(const string &ical)
 
                 // Get next few accurancies and add to the list
                 do {
-                		//cout << "  next " << icaltime_as_ical_string(next) << " - " << icaltime_as_ical_string(next_e) << endl;
+                		DEBUG_PRINT(LOG_DEBUG, "    next " << icaltime_as_ical_string(next) << " - " << icaltime_as_ical_string(next_e) );
                         next = icalrecur_iterator_next(ritr);
                         next_e = icalrecur_iterator_next(ritr_end);
 
