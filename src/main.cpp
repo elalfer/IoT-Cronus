@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
 
             DEBUG_PRINT(LOG_INFO, "INFO: update status");
             //set_valve_status(0, vc.IsActive());
-            vt.gpio.SetStatus(!vt.gpio.IsOn()); // Just swap between 2 states
+            vt.gpio.SetStatus(vt.vc.IsActive()); // Just swap between 2 states
         }
 
         // TODO adjust sleep time for schedule update
