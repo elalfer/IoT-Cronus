@@ -8,6 +8,8 @@ GpioRelay::GpioRelay(int GpioPIN)
 
 GpioRelay::~GpioRelay()
 {
+	this->SetStatus(false);
+	DEBUG_PRINT(LOG_INFO, "Delete Gpio device #" << this->pin_id);
 }
 
 int GpioRelay::SetStatus(bool on)

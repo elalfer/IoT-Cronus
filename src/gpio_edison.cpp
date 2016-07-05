@@ -26,11 +26,16 @@ GpioRelay::GpioRelay(int GpioPIN)
 
 GpioRelay::~GpioRelay()
 {
+	this->SetStatus(false);
+	DEBUG_PRINT(LOG_INFO, "Delete Gpio device #" << this->pin_id);
+
 	delete static_cast<mraa::Gpio*>(this->handler);
 }
 
 int GpioRelay::SetStatus(bool on)
 {
+	DEBUG_PRINT(LOG_INFO, "Set pin #" << this->pin_id << " state to " << on );
+
 	static_cast<mraa::Gpio*>(this->handler)->write(on?1:0);
 	is_on = on;
 }
