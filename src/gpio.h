@@ -7,7 +7,7 @@ public:
 	GpioRelay(int GpioPIN); //: is_on(false), pin_id(GpioPIN);
 	~GpioRelay();
 
-	bool IsOn() { return is_on; };
+	bool GetStatus() { return is_on; };
 
 	int  SetStatus(bool on);
 	int  GetPin() { return pin_id; }

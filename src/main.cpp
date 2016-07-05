@@ -23,6 +23,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <memory>
 
 #include "cal.h"
 #include "net.h"
@@ -30,6 +31,9 @@
 #include "gpio.h"
 
 #include "log.h"
+
+#include <signal.h>
+
 
 /*
 #include <libical/ical.h>
@@ -50,10 +54,27 @@
 using namespace std;
 using namespace LibICal;
 
-vector<IValveControl> g_ValveControl;
+// Type declaration
+struct valve_t
+{
+    iCalValveControl vc;
+    GpioRelay gpio;
+    const string url;
+
+    valve_t(string ical_url, int gpio_pin) : gpio(gpio_pin), vc(GT_DEFUALT), url(ical_url) {}
+};
 
 // Global variables
 int g_DebugLevel=6;
+std::vector<shared_ptr<valve_t>> valves;
+
+// Signal handlers
+void sighandler_stop(int id)
+{
+    for(auto &v: valves)
+        v.reset();
+    exit(0);
+}
 
 #define PIN_V1 7
 #define PIN_V2 8
@@ -96,33 +117,29 @@ void ParseOptions(int argc, char* argv[])
     }
 }
 
-struct valve_t
-{
-    iCalValveControl vc;
-    GpioRelay gpio;
-    const string url;
-
-    valve_t(string ical_url, int gpio_pin) : gpio(gpio_pin), vc(GT_DEFUALT), url(ical_url) {}
-};
-
 int main(int argc, char* argv[])
 {
 
     ParseOptions(argc, argv);
 
+    // Register signals
+    signal(SIGINT,  sighandler_stop);
+    signal(SIGKILL, sighandler_stop);
+    signal(SIGTERM, sighandler_stop);
+
+
     // Start main app loop
     // Should go to deamon mode at this point
 
-    iCalValveControl vc(GT_DEFUALT);
-    GpioRelay R1(PIN_V1);
+    //iCalValveControl vc(GT_DEFUALT);
+    //GpioRelay R1(PIN_V1);
 
-    std::vector<valve_t> valves;
     {
-        valve_t vt("https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics",
-            PIN_V1);
+        shared_ptr<valve_t> vt(new valve_t("https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics",
+            PIN_V1) );
         char f_name[255];
-        sprintf(f_name, "%d.ics", vt.gpio.GetPin());
-        vt.vc.ParseICALFromFile(f_name);
+        sprintf(f_name, "%d.ics", vt->gpio.GetPin());
+        vt->vc.ParseICALFromFile(f_name);
 
         valves.push_back(vt);
     }
@@ -141,9 +158,9 @@ int main(int argc, char* argv[])
                 // string URL("https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics");
                 int err;
 
-                if( (err = load_ical_from_url(ical_string, vt.url, vt.vc.LastUpdated())) == NET_SUCCESS)
+                if( (err = load_ical_from_url(ical_string, vt->url, vt->vc.LastUpdated())) == NET_SUCCESS)
                 {
-                    vt.vc.ParseICALFromString(ical_string);
+                    vt->vc.ParseICALFromString(ical_string);
 
                     // TODO - store to $ file
                 }
@@ -163,7 +180,8 @@ int main(int argc, char* argv[])
 
             DEBUG_PRINT(LOG_INFO, "INFO: update status");
             //set_valve_status(0, vc.IsActive());
-            vt.gpio.SetStatus(vt.vc.IsActive()); // Just swap between 2 states
+            if(vt->vc.IsActive() != vt->gpio.GetStatus())
+                vt->gpio.SetStatus(vt->vc.IsActive());
         }
 
         // TODO adjust sleep time for schedule update
