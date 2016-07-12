@@ -34,6 +34,8 @@
 
 #include <signal.h>
 
+#include "ArduinoJson/ArduinoJson.hpp"
+
 
 /*
 #include <libical/ical.h>
@@ -135,6 +137,43 @@ int main(int argc, char* argv[])
     //GpioRelay R1(PIN_V1);
 
     {
+        ifstream cf("config.json");
+        string config_str((std::istreambuf_iterator<char>(cf)),
+                         std::istreambuf_iterator<char>());
+        cf.close();
+
+        StaticJsonBuffer<512> jbuf;
+        JsonObject& root = jbuf.parseObject(config_str);
+
+        if(!root.success())
+        {
+            DEBUG_PRINT(LOG_WARNING, "Error parsing config.json");
+            exit(-1);
+        }
+        
+        int n_s = root["schedule"].size();
+        cout << "Num sch " << n_s << endl;
+        for(int i=0; i<n_s; ++i)
+        {
+            cout << "add sch\n";
+            cout << root["schedule"][i]["type"] << endl;
+            if(root["schedule"][i]["type"] == string("ical"))
+            {
+                cout << "sch == ical";
+                // Adding ical type schedule
+                cout << root["schedule"][i]["url"] << endl;
+                string gpio_id = root["schedule"][i]["igpo"][0];
+                shared_ptr<valve_t> vt(new valve_t(root["schedule"][i]["url"],std::stoi(gpio_id)) );
+
+                char f_name[255];
+                sprintf(f_name, "%d.ics", vt->gpio.GetPin());
+                vt->vc.ParseICALFromFile(f_name);
+                valves.push_back(vt);
+            }
+        }
+    }
+
+    /*{
         shared_ptr<valve_t> vt(new valve_t("https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics",
             PIN_V1) );
         char f_name[255];
@@ -142,7 +181,7 @@ int main(int argc, char* argv[])
         vt->vc.ParseICALFromFile(f_name);
 
         valves.push_back(vt);
-    }
+    }*/
 
     // vc.ParseICALFromFile("./7.ics");
     time_t last_reload = time(0); //-2*UPDATE_TIME; // Hack to force the reload on the first iteration
