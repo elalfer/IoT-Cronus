@@ -137,22 +137,20 @@ int main(int argc, char* argv[])
         }
         
         int n_s = root["schedule"].size();
-        cout << "Num sch " << n_s << endl;
+        DEBUG_PRINT(LOG_INFO, "Loading schedule configuration (ch# " << n_s << ")" );
         for(int i=0; i<n_s; ++i)
         {
-            cout << "add sch\n";
-            cout << root["schedule"][i]["type"] << endl;
             if(root["schedule"][i]["type"] == string("ical"))
             {
-                cout << "sch == ical";
+                DEBUG_PRINT(LOG_INFO, "  - ical, gpio " << root["schedule"][i]["igpo"][0]);
                 // Adding ical type schedule
-                cout << root["schedule"][i]["url"] << endl;
+                //cout << root["schedule"][i]["url"] << endl;
                 string gpio_id = root["schedule"][i]["igpo"][0];
                 shared_ptr<valve_t> vt(new valve_t(root["schedule"][i]["url"],std::stoi(gpio_id)) );
 
-                cout << "$ filename " << vt->get_cache_filename() << endl;
+                //cout << "$ filename " << vt->get_cache_filename() << endl;
                 if(!vt->load_cached()) {
-                    cout << "Load from web\n";
+                    //cout << "Load from web\n";
                     vt->load_from_url();
                 }
                 valves.push_back(vt);

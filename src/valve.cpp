@@ -9,11 +9,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-
+using namespace std;
 
 string get_cache_filename();
 
-std::string valve_t::get_hash()
+string valve_t::get_hash()
 {
 
 	byte md5sum[MD5_DIGEST_SIZE];
