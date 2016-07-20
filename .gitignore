@@ -1,5 +1,6 @@
 a.out
 *.o
+*.pyc
 .DS_Store
 cacert.pem
 out.txt
