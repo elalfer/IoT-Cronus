@@ -98,11 +98,13 @@ void ParseOptions(int argc, char* argv[])
 
             DEBUG_PRINT(LOG_INFO, "Start channel " << ch << " for " << t << " minutes" );
 
-            GpioRelay R(ch);
+            GpioRelay *R = new GpioRelay(ch);
 
-            R.Start();
-            sleep(t*60);
-            R.Stop();
+            R->Start();
+            sleep(t);
+            R->Stop();
+
+	    delete R;
 
             exit(0);
         }
