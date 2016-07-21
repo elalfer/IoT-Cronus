@@ -48,7 +48,7 @@
 // Time after which to check if any of the valves are active (sec)
 #define CHECK_TIME 10
 // Time to update calendar info from the internet (sec)
-#define UPDATE_TIME (60*60*4)
+#define UPDATE_TIME (60*60)
 
 //// TODO List
 // * Extract cal for a week
@@ -68,8 +68,6 @@ void sighandler_stop(int id)
     exit(0);
 }
 
-#define PIN_V1 7
-#define PIN_V2 8
 #define PIN_LED_ACTIVE 4
 
 void ParseOptions(int argc, char* argv[])
@@ -101,10 +99,10 @@ void ParseOptions(int argc, char* argv[])
             GpioRelay *R = new GpioRelay(ch);
 
             R->Start();
-            sleep(t);
+            sleep(t*60);
             R->Stop();
 
-	    delete R;
+            delete R;
 
             exit(0);
         }
@@ -151,7 +149,7 @@ int main(int argc, char* argv[])
                 shared_ptr<valve_t> vt(new valve_t(root["schedule"][i]["url"],std::stoi(gpio_id)) );
 
                 //cout << "$ filename " << vt->get_cache_filename() << endl;
-                if(!vt->load_cached()) {
+                if(!vt->load_cached(UPDATE_TIME)) {
                     //cout << "Load from web\n";
                     vt->load_from_url();
                 }

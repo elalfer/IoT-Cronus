@@ -19,7 +19,7 @@ struct valve_t
 
     string get_hash();
     string get_cache_filename();
-    bool load_cached();
+    bool load_cached(int max_age = 360);
     int load_from_url(bool store_to_cache = true);
 
 
