@@ -36,13 +36,15 @@ std::string valve_t::get_cache_filename()
 	return "./"+this->get_hash()+".ics";
 }
 
-bool valve_t::load_cached()
+bool valve_t::load_cached(int max_age)
 {
 	// check if $ file exists
 	struct stat st;
 	std::string f_name = this->get_cache_filename();
 	if(stat(f_name.c_str(),&st) == 0)
 	{
+		if( time(0) - st.st_mtime > max_age )
+			return false;
 		this->vc.ParseICALFromFile(f_name);
 		return true;
 	}
