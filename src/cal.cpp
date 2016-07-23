@@ -1,17 +1,20 @@
 #include "cal.h"
 #include "log.h"
+#include <time.h>
 
 //// TODO list
 // * Preserve current list of events or replace - current solution is to replace. Might lead to broken list...
 // * Adjust time for iCal control based on the "grass type"
-// 
+// * Do we need to sort all future events? can they come unordered?
+// * Implement sort_events if needed
 
 #include <algorithm>
 #include <sys/stat.h>
 
 void iCalValveControl::add_to_list(icaltimetype start, icaltimetype end)
 {
-	this->events.push_back(icaltime_span_new(start,end,1));
+    struct icaltime_span ts = icaltime_span_new(start,end,1);
+	this->events.push_back(ts);
 }
 
 void iCalValveControl::sort_events()
@@ -19,24 +22,19 @@ void iCalValveControl::sort_events()
 
 }
 
-inline bool in_range_pred(const icaltime_span &t_span)
-{
-	// FIXME - make sure it is inlined and doesn't get called every time
-	time_t ct = time(0);
-	return (t_span.start >= ct) && (t_span.end <= ct);
-}
-
 bool iCalValveControl::IsActive() {
-	// FIXME - We can do binary_rearch if all elements are sorted (by start time)
-	//	What if some of the time spans do overlap
-	std::vector<icaltime_span>::iterator v = find_if(std::begin(events), std::end(events), in_range_pred );
+    time_t now = time(0);
+    auto v = find_if(std::begin(events), std::end(events),
+       [now](const icaltime_span &ts) {
+            return (ts.start <= now) && (now <= ts.end);
+       } );
 	return v != events.end();
 }
 
 // Parse calendar information from the string
 int iCalValveControl::ParseICALFromString(const string &ical)
 {
-	printf("INFO: Parsing schedule\n");
+	DEBUG_PRINT(LOG_DEBUG, "INFO: Parsing schedule\n");
 
 	VComponent ic(icalparser_parse_string((const char *)ical.c_str()));
 
@@ -64,7 +62,7 @@ int iCalValveControl::ParseICALFromString(const string &ical)
             icaltimetype dt_today = icaltime_today(); //icaltime_current_time_with_zone();
             icaltimetype dt_max_today = icaltime_today();
             	icaltime_adjust(&dt_max_today, MAX_DAYS_IN_FUTURE, 0, 0, 0); // Current date + MAX_DAYS_IN_FUTURE
-            icaltimetype dt_now = icaltime_from_timet(time(0), false);
+            // icaltimetype dt_now = icaltime_from_timet(time(0), false);
 
             //cout << "Today:" << icaltime_as_ical_string(dt_today) << endl;
             //cout << "Now:  " << icaltime_as_ical_string(dt_now) << endl;
@@ -114,15 +112,16 @@ int iCalValveControl::ParseICALFromString(const string &ical)
             {
             	DEBUG_PRINT(LOG_DEBUG, "    Single time event");
 
+                //cout << "Time range: " << icaltime_as_ical_string(dt_today) << " - " << icaltime_as_ical_string(dt_max_today) << endl;
+
                 // Just check the time
                 if( (icaltime_compare_date_only(sub_ic->get_dtstart(),dt_max_today) < 0) &&
-                	(icaltime_compare_date_only(sub_ic->get_dtstart(),dt_today) >= 0) )
+                	(icaltime_compare_date_only(sub_ic->get_dtend(),dt_today) >= 0) )
                 {
                 	// Add single event to the list
                 	add_to_list(sub_ic->get_dtstart(), sub_ic->get_dtend());
                 }
 
-                // TODO: Do we need to sort all future events? can they come unordered?
             }
 
             sub_ic = dynamic_cast<VEvent *>(ic.get_next_component(ICAL_VEVENT_COMPONENT));
@@ -131,6 +130,10 @@ int iCalValveControl::ParseICALFromString(const string &ical)
         // Sort the events
         this->sort_events();
         this->last_updated = time(0);
+
+        DEBUG_PRINT(LOG_DEBUG, "Added events:");
+        for(auto ts: this->events)
+            DEBUG_PRINT(LOG_DEBUG, "      - " << format_timespan_t(ts.start,ts.end) );
 
         return 0;
     }
