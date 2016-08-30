@@ -1,4 +1,4 @@
-#include "valve.h"
+#include "channel.h"
 #include "net.h"
 
 #include <stdio.h>
@@ -13,7 +13,7 @@ using namespace std;
 
 string get_cache_filename();
 
-string valve_t::get_hash()
+string channel_t::get_hash()
 {
 
 	byte md5sum[MD5_DIGEST_SIZE];
@@ -31,12 +31,12 @@ string valve_t::get_hash()
 	return r;
 }
 
-std::string valve_t::get_cache_filename()
+std::string channel_t::get_cache_filename()
 {
 	return "./"+this->get_hash()+".ics";
 }
 
-bool valve_t::load_cached(int max_age)
+bool channel_t::load_cached(int max_age)
 {
 	// check if $ file exists
 	struct stat st;
@@ -52,7 +52,7 @@ bool valve_t::load_cached(int max_age)
 		return false;
 }
 
-int valve_t::load_from_url(bool store_to_cache)
+int channel_t::load_from_url(bool store_to_cache)
 {
 	std::string ical_string="";
 	int err;
@@ -66,10 +66,4 @@ int valve_t::load_from_url(bool store_to_cache)
 	    }
 	}
 	return err;
-}
-
-int set_valve_status(unsigned int id, bool active)
-{
-	printf("INFO: Set valve #%d status to %d\n", id, active);
-	return 0;
 }

@@ -9,13 +9,13 @@
 using namespace std;
 
 // Type declaration
-struct valve_t
+struct channel_t
 {
     iCalValveControl vc;
     GpioRelay gpio;
     const string url;
 
-    valve_t(string ical_url, int gpio_pin) : gpio(gpio_pin), vc(GT_DEFUALT), url(ical_url) {}
+    channel_t(string ical_url, int gpio_pin) : gpio(gpio_pin), vc(GT_DEFUALT), url(ical_url) {}
 
     string get_hash();
     string get_cache_filename();
@@ -24,7 +24,5 @@ struct valve_t
 
 
 };
-
-int set_valve_status(unsigned int id, bool active);
 
 #endif
