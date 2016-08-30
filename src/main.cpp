@@ -27,7 +27,7 @@
 
 #include "cal.h"
 #include "net.h"
-#include "valve.h"
+#include "channel.h"
 #include "gpio.h"
 
 #include "log.h"
@@ -58,7 +58,7 @@ using namespace LibICal;
 
 // Global variables
 int g_DebugLevel=6;
-std::vector<shared_ptr<valve_t>> valves;
+std::vector<shared_ptr<channel_t>> valves;
 
 // Signal handlers
 void sighandler_stop(int id)
@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
                 // Adding ical type schedule
                 //cout << root["schedule"][i]["url"] << endl;
                 string gpio_id = root["schedule"][i]["igpo"][0];
-                shared_ptr<valve_t> vt(new valve_t(root["schedule"][i]["url"],std::stoi(gpio_id)) );
+                shared_ptr<channel_t> vt(new channel_t(root["schedule"][i]["url"],std::stoi(gpio_id)) );
 
                 //cout << "$ filename " << vt->get_cache_filename() << endl;
                 if(!vt->load_cached(UPDATE_TIME)) {

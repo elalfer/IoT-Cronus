@@ -9,7 +9,7 @@ CFLAGS=-O3 -g -std=c++11
 # CFLAGS=-O2 -g
 CLIBS=-L$(WOLFSSL_LIB) -L$(ICAL_LIB) -lwolfssl -lical -lical_cxx
 
-OBJS=cal.o main.o net.o valve.o
+OBJS=cal.o main.o net.o channel.o
 
 # Select gpio support
 ifeq ($(wildcard /usr/lib/libmraa.so),)
