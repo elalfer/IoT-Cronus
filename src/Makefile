@@ -1,6 +1,6 @@
 WOLFSSL_LIB=/opt/lib
 ICAL_LIB=/opt/lib
-BIN_NAME=polivalka
+BIN_NAME=cronus
 
 INCLUDE=-I$(WOLFSSL_LIB)/include -I$(ICAL_LIB)/include -I/opt/include
 
@@ -22,10 +22,10 @@ endif
 .cpp.o:
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
-polivalka: $(ALL_OBJS)
+cronus: $(ALL_OBJS)
 	g++ $(ALL_OBJS) -o $(BIN_NAME) $(CLIBS) $(GPIO_LIBS)
 
-all: polivalka
+all: cronus
 	mkdir -p ../bin
 	rm -f ../bin/$(BIN_NAME)
 	ln -s ../src/$(BIN_NAME) ../bin/
@@ -33,11 +33,11 @@ all: polivalka
 mac: all
 	install_name_tool -change libical.2.dylib     ../../libs/libical-bin/lib/libical.2.dylib ./$(BIN_NAME)
 	install_name_tool -change libical.2.dylib     ../../libs/libical-bin/lib/libical.2.dylib ../../libs/libical-bin/lib/libical_cxx.2.dylib
-	install_name_tool -change /Users/ialbrekh/Documents/Polivalka/libcal/libical-bin/lib/libical.2.dylib  ../../libs/libical-bin/lib/libical.2.dylib ../../libs/libical-bin/lib/libical_cxx.2.dylib
+	install_name_tool -change ../../libcal/libical-bin/lib/libical.2.dylib  ../../libs/libical-bin/lib/libical.2.dylib ../../libs/libical-bin/lib/libical_cxx.2.dylib
 	install_name_tool -change libical_cxx.2.dylib ../../libs/libical-bin/lib/libical_cxx.2.dylib ./$(BIN_NAME)
 
-	install_name_tool -change /Users/ialbrekh/Documents/Polivalka/wolfssl-3.7.0-bin/lib/libwolfssl.1.dylib $(WOLFSSL_LIB)/lib/libwolfssl.1.dylib ./$(BIN_NAME)
+	install_name_tool -change ../../wolfssl-3.7.0-bin/lib/libwolfssl.1.dylib $(WOLFSSL_LIB)/lib/libwolfssl.1.dylib ./$(BIN_NAME)
 
 clean:
-	rm -f polivalka
+	rm -f cronus
 	rm -f *.o
