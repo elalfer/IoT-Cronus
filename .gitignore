@@ -4,6 +4,6 @@ a.out
 .DS_Store
 cacert.pem
 out.txt
-/src/polivalka
+/src/cronus
 /bin/*
 
