@@ -2,7 +2,6 @@
 
 # IoT-Sheduler
 
-<<<<<<< HEAD
 Simple project to schedule tasks on IoT device using local or web hosted iCal files, open sourced under the Apache 2.0 license.
 
 # Installation
