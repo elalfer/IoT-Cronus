@@ -1,2 +1,7 @@
-# Enable C++ support
 language: cpp
+
+compiler:
+
+  - gcc
+  - clang
+ 
