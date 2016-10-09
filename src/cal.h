@@ -50,10 +50,10 @@ public:
 	virtual bool IsActive() = 0;
 };
 
-class iCalValveControl: IValveControl
+class valveControl: IValveControl
 {
 public:
-	iCalValveControl(grass_type_t grass_type): gt(grass_type), last_updated(0) {};
+	valveControl(grass_type_t grass_type): gt(grass_type), last_updated(0) {};
 
 	// Parse calendar information from the string
 	int ParseICALFromString(const string &ical);
