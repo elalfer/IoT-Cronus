@@ -25,7 +25,7 @@ using namespace std;
 // Type declaration
 struct channel_t
 {
-    iCalValveControl vc;
+    valveControl vc;
     GpioRelay gpio;
     const string url;
 
