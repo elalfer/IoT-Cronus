@@ -25,18 +25,18 @@
 #include <algorithm>
 #include <sys/stat.h>
 
-void iCalValveControl::add_to_list(icaltimetype start, icaltimetype end)
+void iCalRelayControl::add_to_list(icaltimetype start, icaltimetype end)
 {
     struct icaltime_span ts = icaltime_span_new(start,end,1);
 	this->events.push_back(ts);
 }
 
-void iCalValveControl::sort_events()
+void iCalRelayControl::sort_events()
 {
 
 }
 
-bool iCalValveControl::IsActive() {
+bool iCalRelayControl::IsActive() {
     time_t now = time(0);
     auto v = find_if(std::begin(events), std::end(events),
        [now](const icaltime_span &ts) {
@@ -46,7 +46,7 @@ bool iCalValveControl::IsActive() {
 }
 
 // Parse calendar information from the string
-int iCalValveControl::ParseICALFromString(const string &ical)
+int iCalRelayControl::ParseICALFromString(const string &ical)
 {
 	DEBUG_PRINT(LOG_DEBUG, "INFO: Parsing schedule\n");
 
@@ -159,7 +159,7 @@ int iCalValveControl::ParseICALFromString(const string &ical)
 }
 
 // Load and parse calendar information from file
-int iCalValveControl::ParseICALFromFile(string file_name)
+int iCalRelayControl::ParseICALFromFile(string file_name)
 {
     ifstream f(file_name);
     string ln;
