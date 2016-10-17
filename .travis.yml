@@ -5,6 +5,13 @@ compiler:
   - gcc
   - clang
 
+addons:
+  sources:
+    - george-edison55-precise-backports
+  packages:
+    - cmake
+    - cmake-data
+
 before_install:
   - git clone https://github.com/bblanchon/ArduinoJson.git
   - cd ArduinoJson
