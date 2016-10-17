@@ -1,18 +1,17 @@
-sudo: required
+sudo: true
 language: cpp
 
 compiler:
-  - gcc
+  - g++
   - clang
 
-addons:
-  sources:
-    - george-edison55-precise-backports
-  packages:
-    - cmake
-    - cmake-data
-
 before_install:
+  - if [ "$CXX" == "clang++" ]; then export CXX="clang++-3.8"; fi
+  - if [ "$CXX" == "g++" ]; then export CXX="g++-4.8"; fi
+  - sudo add-apt-repository ppa:adrozdoff/llvm-backport
+  - sudo apt-get update
+  - sudo apt-get install clang-3.8
+
   - git clone https://github.com/bblanchon/ArduinoJson.git
   - cd ArduinoJson
   - mkdir build
@@ -36,3 +35,12 @@ before_install:
   - make
   - make check
   - sudo make install
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.6
+    packages:
+      - g++-4.8
+      - clang++-3.8
