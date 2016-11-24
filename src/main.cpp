@@ -79,7 +79,19 @@ void sighandler_stop(int id)
 void ParseOptions(int argc, char* argv[])
 {
     int i=1;
+
     for(; i<argc; i++)
+    {
+        if( strcmp("--help", argv[i]) == 0 ) {
+		printf("IoT scheduler by Ilya Albrekht\n");
+		printf("  --debug           Enable debug level output\n");
+		printf("  --run <C> <N>     Turn on channel C for N minutes\n");
+		printf("  --daemon -D       Run as daemon\n");
+		exit(0);
+	}
+    }
+
+    for(i=1; i<argc; i++)
     {
         if(strcmp("--debug", argv[i]) == 0)
         {
