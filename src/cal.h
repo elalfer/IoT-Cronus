@@ -44,16 +44,16 @@ enum grass_type_t {
 	GT_TREES
 };
 
-class IValveControl
+class IRelayControl
 {
 public:
 	virtual bool IsActive() = 0;
 };
 
-class iCalValveControl: IValveControl
+class iCalRelayControl: IRelayControl
 {
 public:
-	iCalValveControl(grass_type_t grass_type): gt(grass_type), last_updated(0) {};
+	iCalRelayControl(grass_type_t grass_type): gt(grass_type), last_updated(0) {};
 
 	// Parse calendar information from the string
 	int ParseICALFromString(const string &ical);
