@@ -23,6 +23,7 @@
 #include <string.h>
 
 extern int g_DebugLevel;
+extern bool g_isDaemon;
 
 #if DEBUG
 	#define PRINT_FUNC " {" << __PRETTY_FUNCTION__ << "}"

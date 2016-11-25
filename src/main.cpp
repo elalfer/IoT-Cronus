@@ -64,6 +64,8 @@ using namespace LibICal;
 
 // Global variables
 int g_DebugLevel=LOG_INFO;
+bool g_isDaemon=false;
+
 std::vector<shared_ptr<channel_t>> valves;
 
 // Signal handlers
@@ -93,6 +95,9 @@ void ParseOptions(int argc, char* argv[])
 
     for(i=1; i<argc; i++)
     {
+        if( (strcmp("--deamon", argv[i]) == 0 ) || (strcmp("-D", argv[i]) == 0 ) )
+            g_isDaemon = true;
+
         if(strcmp("--debug", argv[i]) == 0)
         {
             g_DebugLevel = 7;
@@ -177,6 +182,16 @@ int main(int argc, char* argv[])
     }
 
     time_t last_reload = time(0); //-2*UPDATE_TIME; // Hack to force the reload on the first iteration
+
+    if(g_isDaemon) {
+        LOG_PRINT(LOG_INFO, "Going to Daemon mode!");
+	pid_t p_id = fork();
+	if( p_id == -1 ) {
+		LOG_PRINT(LOG_CRIT, "Can't create child process to go into daemon mode");
+		exit(-1);
+	}
+	if( p_id != 0 ) exit(0);
+    }
 
     // Enter into work loop
     while(true)
