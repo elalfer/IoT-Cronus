@@ -24,7 +24,15 @@
 
 extern int g_DebugLevel;
 
-#define DEBUG_PRINT(log,txt) if(log <= g_DebugLevel) std::cout << log << ": " << txt << " (" << __PRETTY_FUNCTION__ << ")" <<  std::endl;
+#if DEBUG
+	#define PRINT_FUNC " {" << __PRETTY_FUNCTION__ << "}"
+#else
+	#define PRINT_FUNC ""
+#endif
+
+#define LOG_PRINT(log, msg) DEBUG_PRINT(log, msg)
+
+#define DEBUG_PRINT(log,txt) if(log <= g_DebugLevel) std::cout << format_time_t(time(0)) << " " << log << ": " << txt << PRINT_FUNC <<  std::endl;
 
 static char *format_time_t(time_t t)
 {

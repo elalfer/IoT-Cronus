@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "net.h"
+#include "log.h"
 
 #include <err.h>
 #include <time.h>
@@ -66,16 +67,13 @@ string hostname_from_url(const string &url)
 int load_ical_from_url(string &ical, const string &URL, time_t mod_since)
 {
     string host = hostname_from_url(URL);
-	printf("INFO: Load schedule from %s\n", host.c_str());
+    LOG_PRINT(LOG_INFO, "Loading schedule from " << host.c_str() );
 
     int sock;
     int error_num;
     struct sockaddr_in saddr;
     struct addrinfo ai_hints, *ai_res, *ai_iter;
     
-    //const char *url = "https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics";
-    //const char *hostname = "calendar.google.com";
-
     const char *url = URL.c_str();
     const char *hostname = host.c_str();
 
@@ -95,7 +93,7 @@ int load_ical_from_url(string &ical, const string &URL, time_t mod_since)
     else
         snprintf( message, sizeof message, "GET %s\n\n", url);
 
-    cout << message << endl;
+    LOG_PRINT(LOG_DEBUG, "HTTP message: " << message );
     //exit(-1);
     
     memset(&ai_hints, 0, sizeof ai_hints);
@@ -119,12 +117,12 @@ int load_ical_from_url(string &ical, const string &URL, time_t mod_since)
             struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_iter->ai_addr;
             addr = (struct in_addr *) &(ipv6->sin6_addr);
         }
-        printf(" %s\n", inet_ntoa( *addr ));
+        LOG_PRINT(LOG_DEBUG, " IP " << inet_ntoa( *addr ) );
     }
     
     sock = socket(PF_INET, SOCK_STREAM, 0);
     if (sock<0) {
-        perror("Can't create socket\n");
+        LOG_PRINT(LOG_CRIT, "Can't create socket\n");
         return -1;
     }
     
@@ -146,17 +144,19 @@ int load_ical_from_url(string &ical, const string &URL, time_t mod_since)
     
     /* make new ssl context */
     if ( (ctx = wolfSSL_CTX_new(method)) == NULL) {
-        err_sys("wolfSSL_CTX_new error");
+        LOG_PRINT(LOG_CRIT, "wolfSSL_CTX_new error" );
+	exit(-1);
     }
     
     /* make new wolfSSL struct */
     if ( (ssl = wolfSSL_new(ctx)) == NULL) {
-        err_sys("wolfSSL_new error");
+        LOG_PRINT(LOG_CRIT, "wolfSSL_new error" );
+	exit(-1);
     }
     
     //wolfSSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, 0);    
     if (wolfSSL_CTX_load_verify_locations(ctx, "./cacert.pem", 0) != SSL_SUCCESS) {
-        err_sys("Error loading cacert.pem");
+        LOG_PRINT(LOG_ERR, "Error loading cacert.pem" );
     }
 
     /* Connect wolfssl to the socket, server, then send message */
@@ -164,15 +164,24 @@ int load_ical_from_url(string &ical, const string &URL, time_t mod_since)
     if(wolfSSL_connect(ssl) != SSL_SUCCESS)
     {
         int err = wolfSSL_get_error(ssl, 0);
-        printf("WolfSSL error connect: %d\n", err);
         char buffer[1024];
         wolfSSL_ERR_error_string(err, buffer);
-        printf("%s\n", buffer);
+	LOG_PRINT(LOG_ERR, "WolfSSL error connect: " << buffer );
+
+        wolfSSL_free(ssl);
+        wolfSSL_CTX_free(ctx);
+        wolfSSL_Cleanup();
+        return -1;
     }
     
     if(wolfSSL_write(ssl, message, strlen(message)) != strlen(message))
     {
-        printf("WolfSSL error write: %d\n", wolfSSL_get_error(ssl, 0));
+        LOG_PRINT( LOG_ERR, "WolfSSL error write: " << wolfSSL_get_error(ssl, 0) );
+
+        wolfSSL_free(ssl);
+        wolfSSL_CTX_free(ctx);
+        wolfSSL_Cleanup();
+        return -1;
     }
     
     int sel_val = tcp_select(sock, 5);

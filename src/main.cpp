@@ -63,7 +63,7 @@ using namespace std;
 using namespace LibICal;
 
 // Global variables
-int g_DebugLevel=6;
+int g_DebugLevel=LOG_INFO;
 std::vector<shared_ptr<channel_t>> valves;
 
 // Signal handlers
@@ -190,11 +190,11 @@ int main(int argc, char* argv[])
             {
                 int err;
                 if(err=vt->load_from_url() !=NET_SUCCESS) {
-                    DEBUG_PRINT(LOG_INFO, "ERROR: Error loading ical" );
+                    DEBUG_PRINT(LOG_ERR, "ERROR: Error loading ical" );
                 }
             }
 
-            DEBUG_PRINT(LOG_INFO, "INFO: update status");
+            DEBUG_PRINT(LOG_DEBUG, "INFO: update status");
             if(vt->vc.IsActive() != vt->gpio.GetStatus())
                 vt->gpio.SetStatus(vt->vc.IsActive());
         }
