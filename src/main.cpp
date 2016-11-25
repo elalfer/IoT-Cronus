@@ -137,6 +137,23 @@ int main(int argc, char* argv[])
 
     ParseOptions(argc, argv);
 
+    // Go daemon mode
+    if(g_isDaemon) {
+        LOG_PRINT(LOG_INFO, "Going to Daemon mode!");
+	pid_t p_id = fork();
+	if( p_id == -1 ) {
+		LOG_PRINT(LOG_CRIT, "Can't create child process to go into daemon mode")
+		exit(-1);
+	}
+	if( p_id != 0 ) exit(0);
+
+	// Redirect STDOUT & STDERR to log file
+	FILE *f_log = fopen("/var/log/cronus.log", "wa");
+	dup2(fileno(f_log), STDOUT_FILENO);
+	dup2(fileno(f_log), STDERR_FILENO);
+	fclose(f_log);
+    }
+
     // Register signals
     signal(SIGINT,  sighandler_stop);
     signal(SIGKILL, sighandler_stop);
@@ -182,16 +199,6 @@ int main(int argc, char* argv[])
     }
 
     time_t last_reload = time(0); //-2*UPDATE_TIME; // Hack to force the reload on the first iteration
-
-    if(g_isDaemon) {
-        LOG_PRINT(LOG_INFO, "Going to Daemon mode!");
-	pid_t p_id = fork();
-	if( p_id == -1 ) {
-		LOG_PRINT(LOG_CRIT, "Can't create child process to go into daemon mode");
-		exit(-1);
-	}
-	if( p_id != 0 ) exit(0);
-    }
 
     // Enter into work loop
     while(true)
