@@ -1,7 +1,11 @@
 language: cpp
 
 compiler:
-
   - gcc
-  - clang
  
+script: cd src && make
+
+before_install:
+  - sudo apt-get install libwolfssl-dev
+  - sudo apt-get install libical-dev
+  - ./install_dep.sh
