@@ -167,12 +167,12 @@ int main(int argc, char* argv[])
                          std::istreambuf_iterator<char>());
         cf.close();
 
-        StaticJsonBuffer<512> jbuf;
+        DynamicJsonBuffer jbuf;
         JsonObject& root = jbuf.parseObject(config_str);
 
         if(!root.success())
         {
-            DEBUG_PRINT(LOG_WARNING, "Error parsing config.json");
+            DEBUG_PRINT(LOG_CRIT, "Error parsing config.json");
             exit(-1);
         }
         
@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
                 DEBUG_PRINT(LOG_INFO, "  - ical, gpio " << root["schedule"][i]["igpo"][0]);
                 // Adding ical type schedule
                 //cout << root["schedule"][i]["url"] << endl;
-                string gpio_id = root["schedule"][i]["igpo"][0];
+                string gpio_id = root["schedule"][i]["gpio"][0];
                 shared_ptr<channel_t> vt(new channel_t(root["schedule"][i]["url"],std::stoi(gpio_id)) );
 
                 //cout << "$ filename " << vt->get_cache_filename() << endl;

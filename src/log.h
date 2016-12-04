@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #ifndef LOG_H
-#define LOG_H
+#define LOG_H 1
 
 #include <stdio.h>
 #include <syslog.h>
@@ -31,9 +31,20 @@ extern bool g_isDaemon;
 	#define PRINT_FUNC ""
 #endif
 
+static std::string log_level_names[] = {
+	"EMERG",
+	"ALERT",
+	"CRITICAL",
+	"ERROR",
+	"WARNING",
+	"NOTICE",
+	"INFO",
+	"DEBUG"
+};
+
 #define LOG_PRINT(log, msg) DEBUG_PRINT(log, msg)
 
-#define DEBUG_PRINT(log,txt) if(log <= g_DebugLevel) std::cout << format_time_t(time(0)) << " " << log << ": " << txt << PRINT_FUNC <<  std::endl;
+#define DEBUG_PRINT(log,txt) if(log <= g_DebugLevel) std::cout << format_time_t(time(0)) << " [" << log_level_names[log] << "] " << txt << PRINT_FUNC <<  std::endl;
 
 static char *format_time_t(time_t t)
 {
