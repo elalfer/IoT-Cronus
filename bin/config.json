@@ -4,6 +4,11 @@
 			"type" : "ical",
 			"igpo" : [7],
 			"url"  : "https://calendar.google.com/calendar/ical/04n0submlvfodumeo7ola6f90s%40group.calendar.google.com/private-b40357d4bfaee14d76ffaa65e910d554/basic.ics"
+		},
+		{
+			"type" : "ical",
+			"igpo" : [8],
+			"url"  : "https://calendar.google.com/calendar/ical/1tu02t5g09s39blhi9pq2qi66c%40group.calendar.google.com/private-49d3cac9aab816de9f0454e2f85c340a/basic.ics"
 		}
 	]
 }
