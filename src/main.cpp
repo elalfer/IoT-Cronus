@@ -42,22 +42,10 @@
 
 #include "ArduinoJson/ArduinoJson.hpp"
 
-
-/*
-#include <libical/ical.h>
-
-#include "libical/icalproperty_cxx.h"
-#include "libical/vcomponent_cxx.h"
-#include "libical/icalrecur.h" */
-
-
 // Time after which to check if any of the valves are active (sec)
 #define CHECK_TIME 10
 // Time to update calendar info from the internet (sec)
 #define UPDATE_TIME (60*60)
-
-//// TODO List
-// * Extract cal for a week
 
 using namespace std;
 using namespace LibICal;
@@ -65,13 +53,15 @@ using namespace LibICal;
 // Global variables
 int g_DebugLevel=LOG_INFO;
 bool g_isDaemon=false;
-
-std::vector<shared_ptr<channel_t>> valves;
+std::vector<shared_ptr<channel_t>> g_channels;
+std::vector<shared_ptr<GpioRelay>> g_relays;
 
 // Signal handlers
 void sighandler_stop(int id)
 {
-    for(auto &v: valves)
+    for(auto &v: g_channels)
+        v.reset();
+    for(auto &v: g_relays)
         v.reset();
     exit(0);
 }
@@ -119,13 +109,12 @@ void ParseOptions(int argc, char* argv[])
 
             DEBUG_PRINT(LOG_INFO, "Start channel " << ch << " for " << t << " minutes" );
 
-            GpioRelay *R = new GpioRelay(ch);
-
-            R->Start();
+            {
+                shared_ptr<GpioRelay> R( new GpioRelay(ch) );
+                g_relays.push_back(R);
+                R->Start();
+            }
             sleep(t*60);
-            R->Stop();
-
-            delete R;
 
             exit(0);
         }
@@ -134,30 +123,30 @@ void ParseOptions(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
+    // Register signals
+    signal(SIGINT,  sighandler_stop);
+    signal(SIGKILL, sighandler_stop);
+    signal(SIGTERM, sighandler_stop);
 
     ParseOptions(argc, argv);
 
     // Go daemon mode
     if(g_isDaemon) {
         LOG_PRINT(LOG_INFO, "Going to Daemon mode!");
-	pid_t p_id = fork();
-	if( p_id == -1 ) {
-		LOG_PRINT(LOG_CRIT, "Can't create child process to go into daemon mode")
-		exit(-1);
-	}
-	if( p_id != 0 ) exit(0);
+    	pid_t p_id = fork();
+    	if( p_id == -1 ) {
+    		LOG_PRINT(LOG_CRIT, "Can't create child process to go into daemon mode")
+    		exit(-1);
+    	}
+    	if( p_id != 0 ) exit(0);
 
-	// Redirect STDOUT & STDERR to log file
-	FILE *f_log = fopen("/var/log/cronus.log", "wa");
-	dup2(fileno(f_log), STDOUT_FILENO);
-	dup2(fileno(f_log), STDERR_FILENO);
-	fclose(f_log);
+    	// Redirect STDOUT & STDERR to log file
+    	FILE *f_log = fopen("/var/log/cronus.log", "wa");
+    	dup2(fileno(f_log), STDOUT_FILENO);
+    	dup2(fileno(f_log), STDERR_FILENO);
+    	fclose(f_log);
     }
 
-    // Register signals
-    signal(SIGINT,  sighandler_stop);
-    signal(SIGKILL, sighandler_stop);
-    signal(SIGTERM, sighandler_stop);
 
 
     // Load configuration and create 
@@ -193,7 +182,7 @@ int main(int argc, char* argv[])
                     //cout << "Load from web\n";
                     vt->load_from_url();
                 }
-                valves.push_back(vt);
+                g_channels.push_back(vt);
             }
         }
     }
@@ -206,7 +195,7 @@ int main(int argc, char* argv[])
         bool to_reload;
         if( to_reload = (time(0) - last_reload) > UPDATE_TIME )
             last_reload = time(0);
-        for( auto &vt : valves)
+        for( auto &vt : g_channels)
         {
             if(to_reload)
             {
