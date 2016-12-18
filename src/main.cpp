@@ -194,10 +194,11 @@ int main(int argc, char* argv[])
     {
         bool to_reload;
         if( to_reload = (time(0) - last_reload) > UPDATE_TIME )
-            last_reload = time(0);
-        for( auto &vt : g_channels)
-        {
-            if(to_reload)
+        last_reload = time(0);
+
+        // Update schedule if needed by timer
+        if(to_reload)
+            for( auto &vt : g_channels)
             {
                 int err;
                 if(err=vt->load_from_url() !=NET_SUCCESS) {
@@ -205,7 +206,10 @@ int main(int argc, char* argv[])
                 }
             }
 
-            DEBUG_PRINT(LOG_DEBUG, "INFO: update status");
+        // Update status
+        DEBUG_PRINT(LOG_DEBUG, "INFO: update status (#ch " << g_channels.size() << ")");
+        for( auto &vt : g_channels)
+        {
             if(vt->vc.IsActive() != vt->gpio.GetStatus())
                 vt->gpio.SetStatus(vt->vc.IsActive());
         }

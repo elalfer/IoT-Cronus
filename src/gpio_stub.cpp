@@ -18,6 +18,11 @@
 GpioRelay::GpioRelay(int GpioPIN)
 {
 	this->pin_id = GpioPIN;
+	this->is_on = 0;
+}
+
+const bool GpioRelay::GetHWStatus() {
+	return this->is_on;
 }
 
 GpioRelay::~GpioRelay()

@@ -21,7 +21,8 @@ public:
 	GpioRelay(int GpioPIN); //: is_on(false), pin_id(GpioPIN);
 	~GpioRelay();
 
-	bool GetStatus() { return is_on; };
+	const bool GetStatus() { return is_on; };
+	const bool GetHWStatus();
 
 	int  SetStatus(bool on);
 	int  GetPin() { return pin_id; }
